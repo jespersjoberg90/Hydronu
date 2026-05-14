@@ -64,7 +64,6 @@ function App() {
     return analyzedRivers.find((item) => item.river.id === selectedRiverId) || analyzedRivers[0] || null
   }, [analyzedRivers, selectedRiverId])
 
-  const bestRiver = analyzedRivers[0]
   const lastUpdated = selectedRiver?.fetchedAt ? formatDateTime(selectedRiver.fetchedAt) : ''
   const detailId = 'river-detail'
 
@@ -83,26 +82,18 @@ function App() {
       <main className="app-shell">
         <section className="hero-panel">
           <div>
-            <p className="eyebrow">Dagens rekommendation</p>
-            <h1>{bestRiver ? `${bestRiver.river.name} ser bäst ut just nu` : 'Var är det bäst att fiska idag?'}</h1>
-            <p className="hero-copy">
-              {bestRiver
-                ? bestRiver.primaryReason
-                : 'Sex favoritälvar rankas med Hydronu-flöde, trend, väder och enkla flugregler.'}
-            </p>
+            <p className="eyebrow">Hydronu</p>
+            <h1>
+              Vattenläge för <span>dagens fiske</span>
+            </h1>
+            <p className="hero-copy">Aktuella flöden, trender och väder för dina favoritvatten.</p>
             <div className="hero-actions">
               <button type="button" onClick={loadRivers} disabled={loading}>
-                {loading ? 'Hämtar data...' : 'Uppdatera läget'}
+                {loading ? 'Hämtar data...' : 'Uppdatera data'}
               </button>
               {lastUpdated && <span>Senast uppdaterad {lastUpdated}</span>}
             </div>
           </div>
-          <aside className="top-pick" aria-label="Bästa älv just nu">
-            <span className="top-pick__label">Fiskeläge</span>
-            <strong>{bestRiver?.river.name || 'Hämtar...'}</strong>
-            <span>{bestRiver ? `${bestRiver.verdict} · ${bestRiver.score}/100` : 'SMHI-data laddas'}</span>
-            {bestRiver && <small>{bestRiver.forecastSummary.label}</small>}
-          </aside>
         </section>
 
         {error && <p className="notice notice--error">{error}</p>}
@@ -131,7 +122,6 @@ function App() {
 function RiverSkeleton({ river }) {
   return (
     <article className="river-card river-card--skeleton">
-      <p>{river.region}</p>
       <h2>{river.name}</h2>
       <div className="skeleton-line" />
       <div className="skeleton-line skeleton-line--short" />
@@ -150,8 +140,7 @@ function RiverCard({ item, selected, detailId, onSelect }) {
       aria-expanded={selected}
     >
       <div className="river-card__top">
-        <span>{item.river.region}</span>
-        <strong aria-label={`Fiskeläge ${item.score} av 100`}>{item.score}</strong>
+        <strong aria-label={`Lägespoäng ${item.score} av 100`}>{item.score}</strong>
       </div>
       <h2>{item.river.name}</h2>
       <p className="verdict">{item.verdict}</p>
@@ -173,10 +162,14 @@ function RiverCard({ item, selected, detailId, onSelect }) {
           <dt>Trend</dt>
           <dd>{getTrendLabel(hydrology.trend)}</dd>
         </div>
+        <div>
+          <dt>Färg</dt>
+          <dd>{item.conditions.waterColorLabel}</dd>
+        </div>
       </dl>
       <div className="river-card__footer">
         <span>{item.forecastSummary.label}</span>
-        <span>{selected ? 'Visas nu' : 'Visa detaljer'} →</span>
+        <span>{selected ? 'Vald älv' : 'Visa läget'} →</span>
       </div>
     </button>
   )
@@ -194,17 +187,17 @@ function RiverDetail({ item, detailId, detailRef }) {
       tabIndex={-1}
     >
       <div className="detail-panel__main">
-        <p className="eyebrow">Varför denna älv?</p>
-        <h2 id="detail-heading">Varför {item.river.name}?</h2>
+        <p className="eyebrow">Lägesbild</p>
+        <h2 id="detail-heading">Läget i {item.river.name}</h2>
         <p className="detail-lead">
-          {item.verdict} med {formatFlow(hydrology.currentFlow).toLowerCase()} och{' '}
+          {item.verdict} med {formatFlow(hydrology.currentFlow).toLowerCase()} och en{' '}
           {getTrendLabel(hydrology.trend)} trend.
         </p>
         <div className="decision-grid">
           <DecisionCard
             label="Vattenläge"
             title={item.seasonalSummary.label}
-            body={`${formatFlow(hydrology.currentFlow)} · ${item.conditions.waterColor}. ${item.seasonalSummary.detail}`}
+            body={`${formatFlow(hydrology.currentFlow)} · uppskattat ${item.conditions.waterColorLabel.toLowerCase()} vatten. ${item.seasonalSummary.detail}`}
           />
           <DecisionCard
             label="Trend och prognos"
@@ -213,13 +206,16 @@ function RiverDetail({ item, detailId, detailRef }) {
           />
           <DecisionCard
             label="Väder"
-            title={`${item.conditions.weather} · ${weather.tempC ?? '?'} °C`}
-            body={`Regn nu: ${weather.precipitationAmountMmPerH ?? 0} mm/h. Molnighet: ${weather.cloudCoverPercent ?? '?'} %.`}
+            title={`${item.conditions.weatherLabel} · ${weather.tempC ?? '?'} °C`}
+            body={`Nederbörd: ${weather.precipitationAmountMmPerH ?? 0} mm/h. Molnighet: ${weather.cloudCoverPercent ?? '?'} %.`}
           />
         </div>
         <div className="tactic-card">
-          <span>Fisketaktik</span>
-          <strong>{item.tacticHint}</strong>
+          <span>Taktik</span>
+          <strong>{item.tactic?.text || item.tacticHint}</strong>
+          {item.tactic?.basis?.length > 0 && (
+            <p className="tactic-card__basis">Baserat på: {item.tactic.basis.join(' · ')}</p>
+          )}
         </div>
         <ul className="reason-list">
           {item.reasons.map((reason) => (

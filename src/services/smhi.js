@@ -17,16 +17,11 @@ async function fetchJson(url) {
   return response.json()
 }
 
-function getParam(series, key) {
-  const param = series?.parameters?.find((item) => item.name === key)
-  return Array.isArray(param?.values) ? param.values[0] : null
-}
-
 function pickClosestTimeSeries(timeSeries) {
   if (!Array.isArray(timeSeries) || timeSeries.length === 0) return null
   const now = Date.now()
   return timeSeries
-    .map((series) => ({ series, diff: Math.abs(new Date(series.validTime).getTime() - now) }))
+    .map((series) => ({ series, diff: Math.abs(new Date(series.validTime || series.time).getTime() - now) }))
     .sort((a, b) => a.diff - b.diff)[0]?.series
 }
 
@@ -172,20 +167,22 @@ export async function fetchHydronuForRiver(river) {
 }
 
 export async function fetchWeatherForPoint(lat, lon) {
-  const url = `https://opendata-download-metfcst.smhi.se/api/category/pmp3g/version/2/geotype/point/lon/${lon}/lat/${lat}/data.json`
+  const url = `https://opendata-download-metfcst.smhi.se/api/category/snow1g/version/1/geotype/point/lon/${lon}/lat/${lat}/data.json`
   const data = await fetchJson(url)
   const closest = pickClosestTimeSeries(data?.timeSeries)
   if (!closest) throw new Error('Ingen väderprognos hittades')
+  const weatherData = closest.data || {}
 
   return {
-    source: 'SMHI väderprognos',
+    source: 'SMHI SNOW1g väderprognos',
     available: true,
-    observedAt: closest.validTime,
-    tempC: getParam(closest, 't'),
-    cloudCoverPercent: getParam(closest, 'tcc_mean'),
-    precipitationCategory: getParam(closest, 'pcat'),
-    precipitationAmountMmPerH: getParam(closest, 'pmean'),
-    windSpeedMs: getParam(closest, 'ws'),
+    observedAt: closest.time,
+    tempC: weatherData.air_temperature,
+    cloudCoverPercent: weatherData.cloud_area_fraction,
+    precipitationCategory: weatherData.predominant_precipitation_type_at_surface,
+    precipitationAmountMmPerH: weatherData.precipitation_amount_mean,
+    weatherSymbol: weatherData.symbol_code,
+    windSpeedMs: weatherData.wind_speed,
   }
 }
 

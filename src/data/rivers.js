@@ -6,6 +6,7 @@ export const rivers = [
     hydronuId: 22361,
     lat: 63.58,
     lon: 19.62,
+    baseWaterColor: 'humic',
   },
   {
     id: 'orealven',
@@ -14,6 +15,7 @@ export const rivers = [
     hydronuId: 22548,
     lat: 63.7,
     lon: 19.95,
+    baseWaterColor: 'humic',
   },
   {
     id: 'hornean',
@@ -22,6 +24,7 @@ export const rivers = [
     hydronuId: 41586,
     lat: 63.75,
     lon: 19.75,
+    baseWaterColor: 'humic',
   },
   {
     id: 'vindelalven',
@@ -30,6 +33,7 @@ export const rivers = [
     hydronuId: 24680,
     lat: 64.18,
     lon: 19.72,
+    baseWaterColor: 'tea',
   },
   {
     id: 'savaran',
@@ -38,6 +42,7 @@ export const rivers = [
     hydronuId: 24099,
     lat: 63.95,
     lon: 20.55,
+    baseWaterColor: 'humic',
   },
   {
     id: 'ricklean',
@@ -46,5 +51,6 @@ export const rivers = [
     hydronuId: 25577,
     lat: 64.15,
     lon: 20.95,
+    baseWaterColor: 'humic',
   },
 ]

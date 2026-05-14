@@ -1,9 +1,9 @@
 export const flies = [
   {
     name: 'Pahtakorva',
-    colors: ['Brown', 'Orange', 'Gold'],
+    colors: ['Brun', 'Orange', 'Guld'],
     fits: {
-      waterColor: ['Humic', 'Tea-colored', 'Colored'],
+      waterColor: ['humic', 'tea', 'colored'],
       waterLevel: ['Low', 'Medium', 'High'],
       weather: ['All'],
       time: ['All'],
@@ -12,9 +12,9 @@ export const flies = [
   },
   {
     name: 'Nasty Banana',
-    colors: ['Yellow', 'Olive', 'Brown'],
+    colors: ['Gul', 'Oliv', 'Brun'],
     fits: {
-      waterColor: ['Humic', 'Colored'],
+      waterColor: ['humic', 'colored'],
       waterLevel: ['Low', 'Medium'],
       weather: ['Bright', 'Sunny', 'All'],
       time: ['Day', 'All'],
@@ -23,9 +23,9 @@ export const flies = [
   },
   {
     name: 'Willie Gun',
-    colors: ['Black', 'Yellow', 'Orange'],
+    colors: ['Svart', 'Gul', 'Orange'],
     fits: {
-      waterColor: ['Colored', 'Turbid', 'Humic'],
+      waterColor: ['colored', 'turbid', 'humic'],
       waterLevel: ['Medium', 'High'],
       weather: ['Overcast', 'Cloudy', 'Rain', 'All'],
       time: ['All'],
@@ -34,20 +34,20 @@ export const flies = [
   },
   {
     name: 'Black & Silver',
-    colors: ['Black', 'Silver'],
+    colors: ['Svart', 'Silver'],
     fits: {
-      waterColor: ['Clear', 'Greenish'],
+      waterColor: ['tea', 'humic'],
       waterLevel: ['Low', 'Medium'],
       weather: ['Cloudy', 'Overcast'],
       time: ['Dawn', 'Dusk'],
     },
-    note: 'Rent och tydligt val vid klart vatten och svagt ljus.',
+    note: 'Tydligt val när vattnet är lågt och ljuset är svagt.',
   },
   {
     name: 'Phatagorva',
-    colors: ['Orange', 'Gold', 'Brown'],
+    colors: ['Orange', 'Guld', 'Brun'],
     fits: {
-      waterColor: ['Colored', 'Tea-colored', 'Turbid'],
+      waterColor: ['colored', 'tea', 'turbid'],
       waterLevel: ['High', 'Flood'],
       weather: ['Rain', 'Overcast', 'All'],
       time: ['All'],
@@ -56,13 +56,13 @@ export const flies = [
   },
   {
     name: 'Green Highlander',
-    colors: ['Green', 'Yellow', 'Orange'],
+    colors: ['Grön', 'Gul', 'Orange'],
     fits: {
-      waterColor: ['Greenish', 'Clear', 'Slightly colored'],
+      waterColor: ['tea', 'humic', 'colored'],
       waterLevel: ['Medium'],
       weather: ['Bright', 'Cloudy', 'All'],
       time: ['Day', 'Dusk'],
     },
-    note: 'Fin sökfluga när vattnet är friskt och inte för färgat.',
+    note: 'Fin sökfluga när vattnet har lagom färg och bra fart.',
   },
 ]

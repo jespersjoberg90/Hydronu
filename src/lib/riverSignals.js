@@ -21,10 +21,25 @@ const trendToneLabels = {
   steady: 'Stabilt',
 }
 
+const waterColorLabels = {
+  tea: 'Tefärgat',
+  humic: 'Humöst',
+  colored: 'Färgat',
+  turbid: 'Grumligt',
+}
+
+const weatherLabels = {
+  Rain: 'Regn',
+  Overcast: 'Mulet',
+  Cloudy: 'Molnigt',
+  Bright: 'Ljust',
+  Sunny: 'Soligt',
+}
+
 function getWeatherLabel(weather) {
   const rain = Number(weather?.precipitationAmountMmPerH || 0)
   const cloud = Number(weather?.cloudCoverPercent ?? 50)
-  if (rain >= 0.35 || weather?.precipitationCategory >= 1) return 'Rain'
+  if (rain >= 0.35) return 'Rain'
   if (cloud >= 85) return 'Overcast'
   if (cloud >= 55) return 'Cloudy'
   if (cloud >= 20) return 'Bright'
@@ -47,12 +62,13 @@ function getWaterLevel(status) {
   return 'Medium'
 }
 
-function getWaterColor(hydrology, weather) {
+function getWaterColor(river, hydrology, weather) {
   const rain = Number(weather?.precipitationAmountMmPerH || 0)
-  if (hydrology?.status === 'very-high') return 'Turbid'
-  if (hydrology?.status === 'high' || hydrology?.trend === 'rising' || rain >= 0.35) return 'Colored'
-  if (hydrology?.status === 'low' || hydrology?.status === 'very-low') return 'Clear'
-  return 'Humic'
+  const baseColor = river?.baseWaterColor || 'humic'
+  if (hydrology?.status === 'very-high') return 'turbid'
+  if (hydrology?.status === 'high' || hydrology?.trend === 'rising' || rain >= 0.35) return 'colored'
+  if (hydrology?.status === 'low' || hydrology?.status === 'very-low') return 'tea'
+  return baseColor
 }
 
 function includesFit(values, actual) {
@@ -149,6 +165,23 @@ function getRiskFlags(signals, conditions) {
   return flags
 }
 
+function getTacticBasis(conditions, hydrology, weather) {
+  const basis = []
+  if (hydrology?.status && hydrology.status !== 'unknown') basis.push(getSeasonalSummary(hydrology).label.toLowerCase())
+  if (hydrology?.trend && hydrology.trend !== 'steady') basis.push(`${trendLabels[hydrology.trend]} trend`)
+  if (hydrology?.forecastTrend && hydrology.forecastTrend !== 'steady') {
+    basis.push(`${trendLabels[hydrology.forecastTrend]} 10-dagarsprognos`)
+  }
+  if (conditions.waterColorLabel) basis.push(`${conditions.waterColorLabel.toLowerCase()} vatten`)
+  const rain = Number(weather?.precipitationAmountMmPerH || 0)
+  const cloud = Number(weather?.cloudCoverPercent ?? 50)
+  if (rain >= 0.35) basis.push('regn i väderprognosen')
+  else if (cloud >= 55) basis.push('molnigt väder')
+  else if (cloud < 20) basis.push('klart väder')
+  if (conditions.time === 'Dawn' || conditions.time === 'Dusk') basis.push('svagt ljus')
+  return basis.slice(0, 4)
+}
+
 function getTacticHint(conditions, hydrology) {
   if (!hydrology?.available) return 'Börja med säkra pooler och låt lokala observationer styra.'
   if (hydrology.status === 'very-high' || conditions.waterLevel === 'Flood') {
@@ -168,17 +201,36 @@ function getTacticHint(conditions, hydrology) {
   return 'Börja brett med rekommenderad allroundfluga och justera efter färg och ljus.'
 }
 
+function getTactic(signals, conditions, hydrology) {
+  const weather = signals.weather || {}
+  return {
+    text: getTacticHint(conditions, hydrology),
+    basis: getTacticBasis(conditions, hydrology, weather),
+  }
+}
+
 export function getRiverConditions(signals) {
+  const river = signals.river || {}
   const hydrology = signals.hydrology || {}
   const weather = signals.weather || {}
   const waterLevel = getWaterLevel(hydrology.status)
-  const waterColor = getWaterColor(hydrology, weather)
+  const waterColor = getWaterColor(river, hydrology, weather)
   return {
     waterLevel,
     waterColor,
+    waterColorLabel: getWaterColorLabel(waterColor),
     weather: getWeatherLabel(weather),
+    weatherLabel: getWeatherText(getWeatherLabel(weather)),
     time: getTimeLabel(),
   }
+}
+
+export function getWaterColorLabel(color) {
+  return waterColorLabels[color] || waterColorLabels.humic
+}
+
+export function getWeatherText(weather) {
+  return weatherLabels[weather] || weatherLabels.Cloudy
 }
 
 export function getFlyRecommendations(conditions, limit = 3) {
@@ -196,7 +248,7 @@ export function analyzeRiver(signals) {
   const forecastSummary = getForecastSummary(hydrology)
   const primaryReason = getPrimaryReason(hydrology)
   const riskFlags = getRiskFlags(signals, conditions)
-  const tacticHint = getTacticHint(conditions, hydrology)
+  const tactic = getTactic(signals, conditions, hydrology)
   let score = 50
   const reasons = []
 
@@ -265,7 +317,8 @@ export function analyzeRiver(signals) {
     seasonalSummary,
     forecastSummary,
     riskFlags,
-    tacticHint,
+    tactic,
+    tacticHint: tactic.text,
     reasons: reasons.slice(0, 3),
   }
 }
