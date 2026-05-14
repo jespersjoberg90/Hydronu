@@ -82,7 +82,6 @@ function App() {
       <main className="app-shell">
         <section className="hero-panel">
           <div>
-            <p className="eyebrow">Hydronu</p>
             <h1>
               Vattenläge för <span>dagens fiske</span>
             </h1>
