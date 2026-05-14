@@ -168,7 +168,7 @@ function RiverCard({ item, selected, detailId, onSelect }) {
       </dl>
       <div className="river-card__footer">
         <span>{item.forecastSummary.label}</span>
-        <span>{selected ? 'Vald älv' : 'Visa läget'} →</span>
+        <span>Visa mer →</span>
       </div>
     </button>
   )
