@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/hydronu/:path*",
+      "destination": "https://vattenwebb.smhi.se/hydronu/:path*"
+    }
+  ]
+}
