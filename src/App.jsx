@@ -1,3 +1,4 @@
+import { Analytics } from '@vercel/analytics/react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { rivers } from './data/rivers'
 import { fetchAllRiverSignals } from './services/smhi'
@@ -78,49 +79,52 @@ function App() {
   }
 
   return (
-    <main className="app-shell">
-      <section className="hero-panel">
-        <div>
-          <p className="eyebrow">Dagens rekommendation</p>
-          <h1>{bestRiver ? `${bestRiver.river.name} ser bäst ut just nu` : 'Var är det bäst att fiska idag?'}</h1>
-          <p className="hero-copy">
-            {bestRiver
-              ? bestRiver.primaryReason
-              : 'Sex favoritälvar rankas med Hydronu-flöde, trend, väder och enkla flugregler.'}
-          </p>
-          <div className="hero-actions">
-            <button type="button" onClick={loadRivers} disabled={loading}>
-              {loading ? 'Hämtar data...' : 'Uppdatera läget'}
-            </button>
-            {lastUpdated && <span>Senast uppdaterad {lastUpdated}</span>}
+    <>
+      <main className="app-shell">
+        <section className="hero-panel">
+          <div>
+            <p className="eyebrow">Dagens rekommendation</p>
+            <h1>{bestRiver ? `${bestRiver.river.name} ser bäst ut just nu` : 'Var är det bäst att fiska idag?'}</h1>
+            <p className="hero-copy">
+              {bestRiver
+                ? bestRiver.primaryReason
+                : 'Sex favoritälvar rankas med Hydronu-flöde, trend, väder och enkla flugregler.'}
+            </p>
+            <div className="hero-actions">
+              <button type="button" onClick={loadRivers} disabled={loading}>
+                {loading ? 'Hämtar data...' : 'Uppdatera läget'}
+              </button>
+              {lastUpdated && <span>Senast uppdaterad {lastUpdated}</span>}
+            </div>
           </div>
-        </div>
-        <aside className="top-pick" aria-label="Bästa älv just nu">
-          <span className="top-pick__label">Fiskeläge</span>
-          <strong>{bestRiver?.river.name || 'Hämtar...'}</strong>
-          <span>{bestRiver ? `${bestRiver.verdict} · ${bestRiver.score}/100` : 'SMHI-data laddas'}</span>
-          {bestRiver && <small>{bestRiver.forecastSummary.label}</small>}
-        </aside>
-      </section>
+          <aside className="top-pick" aria-label="Bästa älv just nu">
+            <span className="top-pick__label">Fiskeläge</span>
+            <strong>{bestRiver?.river.name || 'Hämtar...'}</strong>
+            <span>{bestRiver ? `${bestRiver.verdict} · ${bestRiver.score}/100` : 'SMHI-data laddas'}</span>
+            {bestRiver && <small>{bestRiver.forecastSummary.label}</small>}
+          </aside>
+        </section>
 
-      {error && <p className="notice notice--error">{error}</p>}
+        {error && <p className="notice notice--error">{error}</p>}
 
-      <section className="river-grid" aria-label="Favoritälvar">
-        {loading && analyzedRivers.length === 0
-          ? rivers.map((river) => <RiverSkeleton key={river.id} river={river} />)
-          : analyzedRivers.map((item) => (
-              <RiverCard
-                key={item.river.id}
-                item={item}
-                selected={selectedRiver?.river.id === item.river.id}
-                detailId={detailId}
-                onSelect={() => handleRiverSelect(item.river.id)}
-              />
-            ))}
-      </section>
+        <section className="river-grid" aria-label="Favoritälvar">
+          {loading && analyzedRivers.length === 0
+            ? rivers.map((river) => <RiverSkeleton key={river.id} river={river} />)
+            : analyzedRivers.map((item) => (
+                <RiverCard
+                  key={item.river.id}
+                  item={item}
+                  selected={selectedRiver?.river.id === item.river.id}
+                  detailId={detailId}
+                  onSelect={() => handleRiverSelect(item.river.id)}
+                />
+              ))}
+        </section>
 
-      {selectedRiver && <RiverDetail item={selectedRiver} detailId={detailId} detailRef={detailRef} />}
-    </main>
+        {selectedRiver && <RiverDetail item={selectedRiver} detailId={detailId} detailRef={detailRef} />}
+      </main>
+      <Analytics />
+    </>
   )
 }
 

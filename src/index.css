@@ -15,8 +15,8 @@
   --accent-strong: #123a2a;
   --warning: #a16207;
   --error: #b42318;
-  --shadow: 0 18px 48px rgba(21, 31, 23, 0.09);
-  --shadow-soft: 0 8px 24px rgba(21, 31, 23, 0.06);
+  --shadow: 0 22px 60px rgba(21, 31, 23, 0.1);
+  --shadow-soft: 0 10px 30px rgba(21, 31, 23, 0.065);
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
   color: var(--text);
