@@ -1,12 +1,12 @@
 .app-shell {
   width: min(100% - 28px, 1120px);
   margin: 0 auto;
-  padding: 14px 0 48px;
+  padding: 16px 0 56px;
 }
 
 .hero-panel {
-  margin-bottom: 18px;
-  padding: 18px 0 8px;
+  margin-bottom: 20px;
+  padding: 20px 0 12px;
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -101,11 +101,15 @@ h1 span {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 10px;
-  margin-top: 22px;
+  gap: 12px;
+  margin-top: 24px;
+  animation: fade-up 560ms cubic-bezier(0.2, 0.8, 0.2, 1) 150ms both;
+}
+
+.hero-actions__meta {
   color: var(--muted);
   font-size: 0.8rem;
-  animation: fade-up 560ms cubic-bezier(0.2, 0.8, 0.2, 1) 150ms both;
+  line-height: 1.4;
 }
 
 .hero-actions button {
@@ -144,18 +148,19 @@ h1 span {
 }
 
 .notice {
-  margin-bottom: 14px;
-  padding: 13px 15px;
+  margin-bottom: 16px;
+  padding: 14px 16px;
   border: 1px solid rgba(159, 59, 50, 0.14);
   border-radius: var(--radius-sm);
   color: var(--danger);
   background: var(--danger-soft);
+  animation: fade-up 320ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
 .river-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 14px;
+  gap: 16px;
 }
 
 .river-card {
@@ -171,7 +176,6 @@ h1 span {
   background: var(--surface);
   box-shadow: var(--shadow-soft);
   backdrop-filter: blur(16px);
-  cursor: pointer;
   animation: fade-up 540ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
   transition:
     transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1),
@@ -200,6 +204,33 @@ h1 span {
   animation-delay: 350ms;
 }
 
+.river-card--expanded {
+  grid-column: 1 / -1;
+  box-shadow: var(--shadow);
+}
+
+.river-card__summary {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  color: inherit;
+  text-align: left;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+.river-card__summary:hover,
+.river-card__summary:focus-visible {
+  outline: none;
+}
+
+.river-card__summary:focus-visible {
+  box-shadow: 0 0 0 3px rgba(47, 118, 109, 0.2);
+  border-radius: 16px;
+}
+
 .river-card:hover,
 .river-card--selected {
   transform: translateY(-3px);
@@ -208,13 +239,154 @@ h1 span {
   box-shadow: var(--shadow);
 }
 
-.river-card:active {
-  transform: translateY(-1px) scale(0.995);
+.river-card__expand-region {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
 }
 
-.river-card:focus-visible {
-  outline: 3px solid rgba(47, 118, 109, 0.2);
-  outline-offset: 3px;
+.river-expand > .river-expand__insight {
+  animation: fade-up 360ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.river-expand > .river-expand__context {
+  animation: fade-up 360ms cubic-bezier(0.2, 0.8, 0.2, 1) 50ms both;
+}
+
+.river-expand__section {
+  animation: fade-up 400ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.river-expand__insight + .river-expand__section,
+.river-expand__context + .river-expand__section {
+  margin-top: 28px;
+}
+
+.river-expand__section--chart {
+  animation-delay: 80ms;
+}
+
+.river-expand__section--flies {
+  animation-delay: 140ms;
+}
+
+.river-expand__section + .river-expand__section {
+  margin-top: 24px;
+}
+
+.river-expand__section h3 {
+  margin-bottom: 12px;
+  color: var(--ink);
+  font-size: 0.92rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+
+.river-expand__insight {
+  margin: 0;
+  color: var(--ink);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.river-expand__context {
+  margin: 10px 0 0;
+  color: var(--muted-strong);
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.river-expand__facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.river-expand__facts li {
+  flex: 1 1 calc(50% - 10px);
+  min-width: 8.5rem;
+  padding: 11px 12px;
+  border-radius: 14px;
+  background: rgba(247, 250, 251, 0.82);
+}
+
+.river-expand__facts span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.river-expand__facts strong {
+  display: block;
+  margin-top: 6px;
+  color: var(--ink);
+  font-size: 0.9rem;
+  font-weight: 640;
+  line-height: 1.25;
+}
+
+.river-expand__tactic {
+  margin-top: 10px;
+  color: var(--ink);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.river-expand__flies {
+  display: grid;
+  gap: 10px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.river-expand__flies li {
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(247, 250, 251, 0.82);
+  animation: fade-up 360ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.river-card--expanded .river-expand__flies li:nth-child(1) {
+  animation-delay: 180ms;
+}
+
+.river-card--expanded .river-expand__flies li:nth-child(2) {
+  animation-delay: 240ms;
+}
+
+.river-card--expanded .river-expand__flies li:nth-child(3) {
+  animation-delay: 300ms;
+}
+
+.river-expand__flies strong {
+  display: block;
+  color: var(--ink);
+  font-size: 0.92rem;
+  font-weight: 640;
+}
+
+.river-expand__flies span {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted-strong);
+  font-size: 0.86rem;
+  line-height: 1.4;
+}
+
+.river-expand__sources {
+  margin-top: 20px;
+  padding-top: 4px;
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.45;
+  animation: fade-up 360ms cubic-bezier(0.2, 0.8, 0.2, 1) 200ms both;
 }
 
 .river-card__top {
@@ -241,7 +413,7 @@ h1 span {
     background-color 220ms ease;
 }
 
-.river-card:hover .river-card__top strong,
+.river-card__summary:hover .river-card__top strong,
 .river-card--selected .river-card__top strong {
   transform: scale(1.04);
 }
@@ -263,9 +435,16 @@ h1 span {
   font-weight: 650;
 }
 
+.river-card__fishing-flow {
+  margin-top: 4px;
+  color: var(--muted-strong);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
 .card-reason {
   max-width: 28rem;
-  margin-top: 12px;
+  margin-top: 10px;
   color: var(--muted-strong);
   font-size: 0.95rem;
   line-height: 1.55;
@@ -274,9 +453,9 @@ h1 span {
 .river-card dl {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 13px 14px;
-  margin: 20px 0 0;
-  padding: 15px;
+  gap: 12px 14px;
+  margin: 16px 0 0;
+  padding: 14px;
   border-radius: 20px;
   background: rgba(247, 250, 251, 0.82);
   transition:
@@ -284,7 +463,7 @@ h1 span {
     transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-.river-card:hover dl,
+.river-card__summary:hover dl,
 .river-card--selected dl {
   background: rgba(247, 250, 251, 0.94);
   transform: translateY(-1px);
@@ -351,7 +530,7 @@ h1 span {
   line-height: 1.35;
 }
 
-.river-card__footer span:last-child {
+.river-card__action {
   display: inline-flex;
   width: fit-content;
   color: var(--accent);
@@ -359,8 +538,31 @@ h1 span {
   transition: transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-.river-card:hover .river-card__footer span:last-child {
+.river-card__summary:hover .river-card__action,
+.river-card__footer--collapse:hover .river-card__action,
+.river-card__footer--collapse:focus-visible .river-card__action {
   transform: translateX(3px);
+}
+
+.river-card__footer--collapse {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  margin-top: 20px;
+  padding-top: 16px;
+  border: 0;
+  border-top: 1px solid var(--border);
+  text-align: left;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+.river-card__footer--collapse:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(47, 118, 109, 0.2);
+  border-radius: 12px;
 }
 
 .river-card--skeleton {
@@ -422,6 +624,98 @@ h1 span {
   color: var(--muted-strong);
   font-size: 1rem;
   line-height: 1.58;
+}
+
+.flow-chart__header h3 {
+  color: var(--ink);
+  font-size: 1rem;
+  font-weight: 620;
+  line-height: 1.2;
+}
+
+.flow-chart__header p {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 0.84rem;
+  line-height: 1.4;
+}
+
+.flow-chart__canvas {
+  margin-top: 4px;
+  animation: fade-up 440ms cubic-bezier(0.2, 0.8, 0.2, 1) 120ms both;
+}
+
+.flow-chart__svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.flow-chart__today-line {
+  stroke: rgba(47, 118, 109, 0.22);
+  stroke-dasharray: 4 4;
+  stroke-width: 1;
+}
+
+.flow-chart__line {
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.flow-chart__line--observed {
+  stroke: rgba(47, 118, 109, 0.45);
+}
+
+.flow-chart__line--forecast {
+  stroke: rgba(115, 128, 125, 0.45);
+  stroke-dasharray: 4 4;
+}
+
+.flow-chart__dot {
+  stroke: #fff;
+  stroke-width: 1.5;
+}
+
+.flow-chart__dot--observed {
+  fill: var(--accent);
+}
+
+.flow-chart__dot--forecast {
+  fill: var(--muted);
+}
+
+.flow-chart__axis {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 560;
+}
+
+.flow-chart__range {
+  margin-top: 8px;
+  color: var(--muted-strong);
+  font-size: 0.78rem;
+  font-weight: 560;
+}
+
+.flow-chart__band {
+  fill: rgba(47, 118, 109, 0.12);
+}
+
+.flow-chart__legend {
+  margin-top: 6px;
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-weight: 560;
+}
+
+.flow-chart__empty {
+  margin-top: 14px;
+  color: var(--muted);
+  font-size: 0.9rem;
 }
 
 .decision-grid {
@@ -577,14 +871,15 @@ h1 span {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .river-card__footer {
+  .river-card__footer,
+  .river-card__footer--collapse {
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
   }
 
   .decision-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -606,9 +901,17 @@ h1 span {
     padding: 24px;
   }
 
+  .river-card--expanded {
+    grid-column: 1 / -1;
+  }
+
   .river-card__top {
     top: 24px;
     right: 24px;
+  }
+
+  .river-expand__facts li {
+    flex: 1 1 calc(20% - 10px);
   }
 
   .river-card dl {

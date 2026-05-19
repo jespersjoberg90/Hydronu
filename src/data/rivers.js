@@ -7,6 +7,12 @@ export const rivers = [
     lat: 63.58,
     lon: 19.62,
     baseWaterColor: 'humic',
+    fishingFlow: {
+      character: 'Medelstor skogsälv',
+      spring: { min: 25, max: 45 },
+      summer: { min: 8, max: 15 },
+      note: 'Klarare än Öreälven. Mycket känslig för extrem torka då den blir svårfiskad.',
+    },
   },
   {
     id: 'orealven',
@@ -16,6 +22,12 @@ export const rivers = [
     lat: 63.7,
     lon: 19.95,
     baseWaterColor: 'humic',
+    fishingFlow: {
+      character: 'Stor skogsälv',
+      spring: { min: 35, max: 60 },
+      summer: { min: 12, max: 20 },
+      note: 'Blir snabbt grumlig vid höga flöden. Kräver tid att klarna efter vårfloden.',
+    },
   },
   {
     id: 'hornean',
@@ -25,15 +37,12 @@ export const rivers = [
     lat: 63.75,
     lon: 19.75,
     baseWaterColor: 'humic',
-  },
-  {
-    id: 'vindelalven',
-    name: 'Vindelälven',
-    region: 'Västerbotten',
-    hydronuId: 24680,
-    lat: 64.18,
-    lon: 19.72,
-    baseWaterColor: 'tea',
+    fishingFlow: {
+      character: 'Liten skogså',
+      spring: { min: 6, max: 12 },
+      summer: { min: 2, max: 4 },
+      note: 'Litet avrinningsområde (medel cirka 4,5 m³/s). Fiskas bäst tidigt eller direkt efter sommarregn.',
+    },
   },
   {
     id: 'savaran',
@@ -43,6 +52,12 @@ export const rivers = [
     lat: 63.95,
     lon: 20.55,
     baseWaterColor: 'humic',
+    fishingFlow: {
+      character: 'Mindre skogsälv',
+      spring: { min: 12, max: 20 },
+      summer: { min: 4, max: 8 },
+      note: 'Många långa strömpartier. Vid flöden under 3–4 m³/s blir forsarna i de övre delarna för grunda.',
+    },
   },
   {
     id: 'ricklean',
@@ -52,5 +67,11 @@ export const rivers = [
     lat: 64.15,
     lon: 20.95,
     baseWaterColor: 'humic',
+    fishingFlow: {
+      character: 'Mindre älv/å',
+      spring: { min: 15, max: 25 },
+      summer: { min: 5, max: 10 },
+      note: 'Medelflöde runt 16 m³/s. Perfekt flugfiskestorlek när den sjunker under 20 m³/s.',
+    },
   },
 ]

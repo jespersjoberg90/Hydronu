@@ -1,28 +1,25 @@
 import { Analytics } from '@vercel/analytics/react'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { rivers } from './data/rivers'
 import { fetchAllRiverSignals } from './services/smhi'
 import {
   analyzeRiver,
   formatDateTime,
   formatFlow,
-  formatSeasonalComparison,
   getStatusLabel,
   getTrendLabel,
 } from './lib/riverSignals'
+import RiverCardExpanded from './components/RiverCardExpanded'
 import './App.css'
 
 function App() {
   const [riverSignals, setRiverSignals] = useState([])
-  const [selectedRiverId, setSelectedRiverId] = useState(rivers[0].id)
+  const [expandedRiverId, setExpandedRiverId] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const detailRef = useRef(null)
 
   const applyRiverData = useCallback((data) => {
     setRiverSignals(data)
-    const best = data.map(analyzeRiver).sort((a, b) => b.score - a.score)[0]
-    if (best) setSelectedRiverId(best.river.id)
   }, [])
 
   const loadRivers = async () => {
@@ -60,21 +57,10 @@ function App() {
     [riverSignals]
   )
 
-  const selectedRiver = useMemo(() => {
-    return analyzedRivers.find((item) => item.river.id === selectedRiverId) || analyzedRivers[0] || null
-  }, [analyzedRivers, selectedRiverId])
+  const lastUpdated = analyzedRivers[0]?.fetchedAt ? formatDateTime(analyzedRivers[0].fetchedAt) : ''
 
-  const lastUpdated = selectedRiver?.fetchedAt ? formatDateTime(selectedRiver.fetchedAt) : ''
-  const detailId = 'river-detail'
-
-  const handleRiverSelect = (riverId) => {
-    setSelectedRiverId(riverId)
-    if (window.matchMedia('(max-width: 900px)').matches) {
-      window.requestAnimationFrame(() => {
-        detailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-        detailRef.current?.focus({ preventScroll: true })
-      })
-    }
+  const handleRiverToggle = (riverId) => {
+    setExpandedRiverId((current) => (current === riverId ? null : riverId))
   }
 
   return (
@@ -85,12 +71,15 @@ function App() {
             <h1>
               Vattenläge för <span>dagens fiske</span>
             </h1>
-            <p className="hero-copy">Aktuella flöden, trender och väder för dina favoritvatten.</p>
+            <p className="hero-copy">
+              Aktuella flöden, trender och väder för dina favoritälvar — skanna läget snabbt eller öppna ett kort
+              för mer.
+            </p>
             <div className="hero-actions">
               <button type="button" onClick={loadRivers} disabled={loading}>
-                {loading ? 'Hämtar data...' : 'Uppdatera data'}
+                {loading ? 'Hämtar data …' : 'Uppdatera data'}
               </button>
-              {lastUpdated && <span>Senast uppdaterad {lastUpdated}</span>}
+              {lastUpdated && <span className="hero-actions__meta">Senast uppdaterad {lastUpdated}</span>}
             </div>
           </div>
         </section>
@@ -104,14 +93,11 @@ function App() {
                 <RiverCard
                   key={item.river.id}
                   item={item}
-                  selected={selectedRiver?.river.id === item.river.id}
-                  detailId={detailId}
-                  onSelect={() => handleRiverSelect(item.river.id)}
+                  expanded={expandedRiverId === item.river.id}
+                  onToggle={() => handleRiverToggle(item.river.id)}
                 />
               ))}
         </section>
-
-        {selectedRiver && <RiverDetail item={selectedRiver} detailId={detailId} detailRef={detailRef} />}
       </main>
       <Analytics />
     </>
@@ -128,127 +114,71 @@ function RiverSkeleton({ river }) {
   )
 }
 
-function RiverCard({ item, selected, detailId, onSelect }) {
+function RiverCard({ item, expanded, onToggle }) {
   const hydrology = item.hydrology || {}
-  return (
-    <button
-      type="button"
-      className={`river-card ${selected ? 'river-card--selected' : ''}`}
-      onClick={onSelect}
-      aria-controls={detailId}
-      aria-expanded={selected}
-    >
-      <div className="river-card__top">
-        <strong aria-label={`Lägespoäng ${item.score} av 100`}>{item.score}</strong>
-      </div>
-      <h2>{item.river.name}</h2>
-      <p className="verdict">{item.verdict}</p>
-      <p className="card-reason">{item.primaryReason}</p>
-      <dl>
-        <div>
-          <dt>Flöde</dt>
-          <dd>{formatFlow(hydrology.currentFlow)}</dd>
-        </div>
-        <div>
-          <dt>Status</dt>
-          <dd>
-            <span className={`status-pill status-pill--${hydrology.status || 'unknown'}`}>
-              {getStatusLabel(hydrology.status)}
-            </span>
-          </dd>
-        </div>
-        <div>
-          <dt>Trend</dt>
-          <dd>{getTrendLabel(hydrology.trend)}</dd>
-        </div>
-        <div>
-          <dt>Färg</dt>
-          <dd>{item.conditions.waterColorLabel}</dd>
-        </div>
-      </dl>
-      <div className="river-card__footer">
-        <span>{item.forecastSummary.label}</span>
-        <span>Visa mer →</span>
-      </div>
-    </button>
-  )
-}
+  const expandId = `river-detail-${item.river.id}`
 
-function RiverDetail({ item, detailId, detailRef }) {
-  const hydrology = item.hydrology || {}
-  const weather = item.weather || {}
   return (
-    <section
-      id={detailId}
-      ref={detailRef}
-      className="detail-panel"
-      aria-labelledby="detail-heading"
-      tabIndex={-1}
+    <article
+      className={`river-card ${expanded ? 'river-card--expanded river-card--selected' : ''}`}
     >
-      <div className="detail-panel__main">
-        <p className="eyebrow">Lägesbild</p>
-        <h2 id="detail-heading">Läget i {item.river.name}</h2>
-        <p className="detail-lead">
-          {item.verdict} med {formatFlow(hydrology.currentFlow).toLowerCase()} och en{' '}
-          {getTrendLabel(hydrology.trend)} trend.
-        </p>
-        <div className="decision-grid">
-          <DecisionCard
-            label="Vattenläge"
-            title={item.seasonalSummary.label}
-            body={`${formatFlow(hydrology.currentFlow)} · uppskattat ${item.conditions.waterColorLabel.toLowerCase()} vatten. ${item.seasonalSummary.detail}`}
-          />
-          <DecisionCard
-            label="Trend och prognos"
-            title={item.forecastSummary.label}
-            body={`${getTrendLabel(hydrology.trend)} just nu. ${item.forecastSummary.detail}`}
-          />
-          <DecisionCard
-            label="Väder"
-            title={`${item.conditions.weatherLabel} · ${weather.tempC ?? '?'} °C`}
-            body={`Nederbörd: ${weather.precipitationAmountMmPerH ?? 0} mm/h. Molnighet: ${weather.cloudCoverPercent ?? '?'} %.`}
-          />
+      <button
+        type="button"
+        className="river-card__summary"
+        onClick={onToggle}
+        aria-expanded={expanded}
+        aria-controls={expandId}
+      >
+        <div className="river-card__top">
+          <strong aria-label={`Lägespoäng ${item.score} av 100`}>{item.score}</strong>
         </div>
-        <div className="tactic-card">
-          <span>Taktik</span>
-          <strong>{item.tactic?.text || item.tacticHint}</strong>
-          {item.tactic?.basis?.length > 0 && (
-            <p className="tactic-card__basis">Baserat på: {item.tactic.basis.join(' · ')}</p>
-          )}
-        </div>
-        <ul className="reason-list">
-          {item.reasons.map((reason) => (
-            <li key={reason}>{reason}</li>
-          ))}
-        </ul>
-        <div className="detail-meta">
-          <span>{formatSeasonalComparison(hydrology)}</span>
-          <span>{hydrology.source || 'SMHI Hydrologiskt nuläge'}</span>
-          {item.riskFlags.length > 0 && <span>Obs: {item.riskFlags.join(', ')}</span>}
-        </div>
-      </div>
-      <aside className="fly-panel">
-        <p className="eyebrow">Flugor att börja med</p>
-        {item.recommendations.map((fly) => (
-          <article key={fly.name} className="fly-card">
-            <div>
-              <h3>{fly.name}</h3>
-              <p>{fly.note}</p>
-            </div>
-            <span>{fly.colors.join(' / ')}</span>
-          </article>
-        ))}
-      </aside>
-    </section>
-  )
-}
+        <h2>{item.river.name}</h2>
+        <p className="verdict">{item.verdict}</p>
+        {item.fishingFlowAssessment?.shortLabel && (
+          <p className="river-card__fishing-flow">{item.fishingFlowAssessment.shortLabel}</p>
+        )}
+        {!expanded && <p className="card-reason">{item.primaryReason}</p>}
+        <dl>
+          <div>
+            <dt>Flöde</dt>
+            <dd>{formatFlow(hydrology.currentFlow)}</dd>
+          </div>
+          <div>
+            <dt>Status</dt>
+            <dd>
+              <span className={`status-pill status-pill--${hydrology.status || 'unknown'}`}>
+                {getStatusLabel(hydrology.status)}
+              </span>
+            </dd>
+          </div>
+          <div>
+            <dt>Trend</dt>
+            <dd>{getTrendLabel(hydrology.trend)}</dd>
+          </div>
+          <div>
+            <dt>Färg</dt>
+            <dd>{item.conditions.waterColorLabel}</dd>
+          </div>
+        </dl>
+        {!expanded && (
+          <div className="river-card__footer">
+            <span>{item.forecastSummary.label}</span>
+            <span className="river-card__action">Visa mer ↓</span>
+          </div>
+        )}
+      </button>
 
-function DecisionCard({ label, title, body }) {
-  return (
-    <article className="decision-card">
-      <span>{label}</span>
-      <strong>{title}</strong>
-      <p>{body}</p>
+      {expanded && (
+        <>
+          <div id={expandId} className="river-card__expand-region">
+            <RiverCardExpanded item={item} />
+          </div>
+          <button type="button" className="river-card__footer river-card__footer--collapse" onClick={onToggle}>
+            <span>{item.forecastSummary.label}</span>
+            <span className="river-card__action">Dölj ↑</span>
+          </button>
+        </>
+      )}
     </article>
   )
 }

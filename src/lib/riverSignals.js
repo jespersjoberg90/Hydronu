@@ -1,4 +1,5 @@
 import { flies } from '../data/flies'
+import { assessFishingFlow, getFishingSeason } from './fishingFlow'
 
 const statusLabels = {
   'very-low': 'Mycket lågt',
@@ -10,9 +11,9 @@ const statusLabels = {
 }
 
 const trendLabels = {
-  rising: 'stigande',
-  falling: 'sjunkande',
-  steady: 'stabilt',
+  rising: 'Stigande',
+  falling: 'Sjunkande',
+  steady: 'Stabilt',
 }
 
 const trendToneLabels = {
@@ -23,7 +24,7 @@ const trendToneLabels = {
 
 const waterColorLabels = {
   tea: 'Tefärgat',
-  humic: 'Humöst',
+  humic: 'Humusfärgat',
   colored: 'Färgat',
   turbid: 'Grumligt',
 }
@@ -109,7 +110,7 @@ function getForecastSummary(hydrology) {
   if (!hydrology?.available || !Number.isFinite(hydrology.forecastDeltaFlow)) {
     return {
       label: 'Prognos saknas',
-      detail: 'Hydronu gav ingen användbar 10-dagarsprognos.',
+      detail: 'SMHI gav ingen användbar tiodagarsprognos.',
       tone: 'unknown',
     }
   }
@@ -122,22 +123,39 @@ function getForecastSummary(hydrology) {
 
   if (hydrology.forecastTrend === 'steady') {
     return {
-      label: 'Stabilt kommande dagar',
-      detail: `Prognosen rör sig mindre än cirka ${percent} på 10 dagar.`,
+      label: 'Stabilt de kommande dagarna',
+      detail: `Prognosen rör sig mindre än cirka ${percent} på tio dagar.`,
       tone: 'steady',
     }
   }
 
   return {
-    label: `${trendLabel} kommande dagar`,
-    detail: `Prognosen ${hydrology.forecastTrend === 'falling' ? 'sjunker' : 'stiger'} med cirka ${percent} på 10 dagar.`,
+    label: `${trendLabel} de kommande dagarna`,
+    detail: `Prognosen ${hydrology.forecastTrend === 'falling' ? 'sjunker' : 'stiger'} med cirka ${percent} på tio dagar.`,
     tone: hydrology.forecastTrend,
   }
 }
 
-function getPrimaryReason(hydrology) {
-  const seasonal = getSeasonalSummary(hydrology)
+function getPrimaryReason(hydrology, fishingFlowAssessment) {
   if (!hydrology?.available) return hydrology?.reason || 'Flödesdata saknas just nu.'
+
+  if (fishingFlowAssessment?.status === 'within') {
+    return `${fishingFlowAssessment.label} (${fishingFlowAssessment.rangeText}).`
+  }
+  if (fishingFlowAssessment?.status === 'below' && fishingFlowAssessment.nearBelow) {
+    return 'Strax under bra fiskeintervall, men fortfarande värt att bevaka.'
+  }
+  if (fishingFlowAssessment?.status === 'above' && fishingFlowAssessment.nearAbove) {
+    return 'Strax över bra fiskeintervall. Vattnet kan vara mer färgat.'
+  }
+  if (fishingFlowAssessment?.status === 'below') {
+    return fishingFlowAssessment.detail
+  }
+  if (fishingFlowAssessment?.status === 'above') {
+    return fishingFlowAssessment.detail
+  }
+
+  const seasonal = getSeasonalSummary(hydrology)
   if (hydrology.status === 'normal' && hydrology.trend === 'falling') {
     return 'Säsongsnormal nivå med sjunkande trend.'
   }
@@ -145,7 +163,6 @@ function getPrimaryReason(hydrology) {
     return 'Högt vatten, men på väg åt rätt håll.'
   }
   if (hydrology.status === 'very-high') return 'Mycket vatten i systemet gör läget mer svårbedömt.'
-  if (hydrology.status === 'low' || hydrology.status === 'very-low') return 'Lågt vatten kräver mer försiktigt fiske.'
   return seasonal.label
 }
 
@@ -165,8 +182,9 @@ function getRiskFlags(signals, conditions) {
   return flags
 }
 
-function getTacticBasis(conditions, hydrology, weather) {
+function getTacticBasis(conditions, hydrology, weather, fishingFlowAssessment) {
   const basis = []
+  if (fishingFlowAssessment?.shortLabel) basis.push(fishingFlowAssessment.shortLabel.toLowerCase())
   if (hydrology?.status && hydrology.status !== 'unknown') basis.push(getSeasonalSummary(hydrology).label.toLowerCase())
   if (hydrology?.trend && hydrology.trend !== 'steady') basis.push(`${trendLabels[hydrology.trend]} trend`)
   if (hydrology?.forecastTrend && hydrology.forecastTrend !== 'steady') {
@@ -201,11 +219,11 @@ function getTacticHint(conditions, hydrology) {
   return 'Börja brett med rekommenderad allroundfluga och justera efter färg och ljus.'
 }
 
-function getTactic(signals, conditions, hydrology) {
+function getTactic(signals, conditions, hydrology, fishingFlowAssessment) {
   const weather = signals.weather || {}
   return {
     text: getTacticHint(conditions, hydrology),
-    basis: getTacticBasis(conditions, hydrology, weather),
+    basis: getTacticBasis(conditions, hydrology, weather, fishingFlowAssessment),
   }
 }
 
@@ -241,14 +259,17 @@ export function getFlyRecommendations(conditions, limit = 3) {
 }
 
 export function analyzeRiver(signals) {
+  const river = signals.river || {}
   const hydrology = signals.hydrology || {}
   const conditions = getRiverConditions(signals)
   const recommendations = getFlyRecommendations(conditions)
   const seasonalSummary = getSeasonalSummary(hydrology)
   const forecastSummary = getForecastSummary(hydrology)
-  const primaryReason = getPrimaryReason(hydrology)
+  const fishingSeason = getFishingSeason()
+  const fishingFlowAssessment = assessFishingFlow(river, hydrology.currentFlow, fishingSeason)
+  const primaryReason = getPrimaryReason(hydrology, fishingFlowAssessment)
   const riskFlags = getRiskFlags(signals, conditions)
-  const tactic = getTactic(signals, conditions, hydrology)
+  const tactic = getTactic(signals, conditions, hydrology, fishingFlowAssessment)
   let score = 50
   const reasons = []
 
@@ -256,30 +277,27 @@ export function analyzeRiver(signals) {
     score = 35
     reasons.push(hydrology.reason || 'Flödesdata saknas just nu.')
   } else {
+    if (fishingFlowAssessment.status === 'within') {
+      score += 18
+      reasons.push(`${fishingFlowAssessment.label} (${fishingFlowAssessment.rangeText}).`)
+    } else if (fishingFlowAssessment.status === 'below') {
+      score += fishingFlowAssessment.nearBelow ? 8 : -4
+      reasons.push(fishingFlowAssessment.detail)
+    } else if (fishingFlowAssessment.status === 'above') {
+      const farAbove =
+        fishingFlowAssessment.range &&
+        hydrology.currentFlow > fishingFlowAssessment.range.max * 1.25
+      score -= farAbove ? 12 : 6
+      reasons.push(fishingFlowAssessment.detail)
+    }
+
     if (hydrology.seasonalStats) {
       reasons.push(
-        `Flödet är högre än ${Math.round(hydrology.seasonalStats.percentile)} % av referensåren för samma datum.`
+        `SMHI: högre än ${Math.round(hydrology.seasonalStats.percentile)} % av referensåren för samma datum.`
       )
     }
-    if (hydrology.status === 'normal') {
-      score += 22
-      reasons.push('Flödet ligger inom säsongsnormal nivå.')
-    }
-    if (hydrology.status === 'low') {
-      score += 6
-      reasons.push('Lägre vatten kan vara fiskbart, särskilt i svagare ljus.')
-    }
-    if (hydrology.status === 'high') {
-      score += hydrology.trend === 'falling' ? 16 : -2
-      reasons.push(hydrology.trend === 'falling' ? 'Högt men på väg ner.' : 'Högt vatten kräver lite mer tålamod.')
-    }
-    if (hydrology.status === 'very-low') {
-      score -= 16
-      reasons.push('Mycket lågt vatten brukar göra fisket svårare.')
-    }
-    if (hydrology.status === 'very-high') {
-      score -= hydrology.trend === 'falling' ? 8 : 24
-      reasons.push('Mycket högt flöde kan göra älven svårfiskad.')
+    if (hydrology.status === 'normal' && fishingFlowAssessment.status !== 'within') {
+      score += 10
     }
     if (hydrology.trend === 'falling') {
       score += 10
@@ -288,6 +306,10 @@ export function analyzeRiver(signals) {
     if (hydrology.trend === 'rising') {
       score -= 8
       reasons.push('Stigande vatten kan färga upp och störa fisket.')
+    }
+    if (hydrology.status === 'very-high') {
+      score -= hydrology.trend === 'falling' ? 8 : 16
+      reasons.push('Mycket högt flöde kan göra älven svårfiskad.')
     }
   }
 
@@ -314,6 +336,7 @@ export function analyzeRiver(signals) {
     score: boundedScore,
     verdict: getVerdict(boundedScore, hydrology),
     primaryReason,
+    fishingFlowAssessment,
     seasonalSummary,
     forecastSummary,
     riskFlags,
