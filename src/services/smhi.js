@@ -200,7 +200,7 @@ export async function fetchRiverSignals(river) {
         : {
             source: 'SMHI Hydrologiskt nuläge',
             available: false,
-            reason: hydrologyResult.reason?.message || 'Hydronu kunde inte hämtas',
+            reason: hydrologyResult.reason?.message || 'Flödesdata kunde inte hämtas från SMHI.',
           },
     weather:
       weatherResult.status === 'fulfilled'
